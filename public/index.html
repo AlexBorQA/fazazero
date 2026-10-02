@@ -243,34 +243,118 @@
 
     <!-- ВКЛАДКА 2: ПАКЕТНЫЙ РАСЧЕТ ИЗ EXCEL -->
     <div id="tab-batch" class="tab-pane">
-      <div class="card">
+      
+      <!-- Карточка загрузки Excel -->
+      <div id="batch-upload-card" class="card">
         <div class="card-header">
           <div class="card-title">
             <span>Пакетная обработка кабельного журнала (.xlsx)</span>
           </div>
-          <a href="#" class="btn-outline" onclick="alert('Шаблон кабельного журнала Excel будет доступен на Шаге 3.'); return false;">
-            📥 Скачать шаблон таблицы (.xlsx)
-          </a>
+          <button type="button" id="btn-download-sample-excel" class="btn-outline">
+            📥 Скачать образец журнала (.xlsx)
+          </button>
         </div>
+
+        <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
 
         <div class="dropzone" id="excel-dropzone">
           <div class="dropzone-icon">📊</div>
           <div class="dropzone-title">Перетащите сюда файл кабельного журнала (.xlsx)</div>
-          <div class="dropzone-desc">или нажмите для выбора файла на вашем компьютере</div>
-          <button type="button" class="btn-outline">Выбрать файл Excel</button>
+          <div class="dropzone-desc">или нажмите кнопку ниже для выбора файла на вашем компьютере</div>
+          <button type="button" id="btn-browse-excel" class="btn-primary" style="max-width: 280px;">
+            Выбрать файл на диске
+          </button>
         </div>
 
         <div style="margin-top: 24px; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
-          <h4 style="color: var(--text-main); margin-bottom: 8px;">Как работает пакетный расчет:</h4>
-          <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-            <li>Вы перетаскиваете существующий кабельный журнал щита (ВРУ, ГРЩ, ЩО, ЩС).</li>
-            <li>Алгоритм автоматически сопоставляет столбцы: <em>Номер линии, Марка кабеля, Сечение фазной и нулевой жилы, Длина, Тип автомата</em>.</li>
-            <li>За 0.05 секунды в памяти браузера рассчитываются сотни отходящих линий.</li>
-            <li>На экране формируется сводная ведомость с мгновенной подсветкой линий, не проходящих по условию электробезопасности.</li>
-            <li>В 1 клик формируется готовый том пояснительной записки в формате Word по ГОСТ 2.105-95.</li>
-          </ol>
+          <h4 style="color: var(--text-main); margin-bottom: 8px;">🛡️ 100% Zero-Server безопасность:</h4>
+          <p style="margin-bottom: 12px;">
+            Файл Excel парсится локально в оперативной памяти вашего браузера. Ни строки, ни ячейки кабельного журнала не передаются в интернет.
+          </p>
+          <h4 style="color: var(--text-main); margin-bottom: 8px;">Поддерживаемые столбцы таблицы:</h4>
+          <p>
+            Алгоритм автоматически распознает столбцы: <em>Номер линии, Потребитель, Марка кабеля, Сечение (например «3х2.5» или «4х70+1х35»), Длина (м), Автомат (например «C16», «B25», «ВА47-29 C10»)</em>.
+          </p>
         </div>
       </div>
+
+      <!-- Контейнер результатов пакетного расчета -->
+      <div id="batch-results-container" class="batch-results-wrapper" style="display: none;">
+        
+        <!-- Панель суммарной статистики -->
+        <div class="batch-stats-bar">
+          <div class="batch-stat-card">
+            <div class="metric-label">Всего кабельных линий</div>
+            <div id="batch-stat-total" class="batch-stat-num">0</div>
+          </div>
+          <div class="batch-stat-card stat-ok">
+            <div class="metric-label">✅ Соответствуют ПУЭ-7</div>
+            <div id="batch-stat-ok" class="batch-stat-num">0</div>
+          </div>
+          <div class="batch-stat-card stat-fail">
+            <div class="metric-label">❌ Замечания (ток КЗ ниже отсечки)</div>
+            <div id="batch-stat-fail" class="batch-stat-num">0</div>
+          </div>
+          <div class="batch-stat-card">
+            <div class="metric-label">Скорость расчета в браузере</div>
+            <div id="batch-stat-speed" class="batch-stat-num" style="color: var(--accent-cyan);">0 мс</div>
+          </div>
+        </div>
+
+        <!-- Панель управления и фильтрации -->
+        <div class="batch-controls">
+          <div class="batch-filter-btns">
+            <button type="button" class="filter-btn active" data-filter="all">Все линии (<span id="count-filter-all">0</span>)</button>
+            <button type="button" class="filter-btn" data-filter="fails">Только замечания ❌ (<span id="count-filter-fails">0</span>)</button>
+            <button type="button" class="filter-btn" data-filter="passed">Только допущенные ✅ (<span id="count-filter-passed">0</span>)</button>
+          </div>
+
+          <div class="batch-search-box">
+            <input type="text" id="batch-search-input" class="form-input" placeholder="🔍 Поиск по номеру линии или нагрузке...">
+          </div>
+
+          <button type="button" id="btn-reupload-excel" class="btn-outline">
+            🔄 Загрузить другой файл
+          </button>
+        </div>
+
+        <!-- Таблица результатов -->
+        <div class="table-responsive">
+          <table class="batch-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">№</th>
+                <th>Линия</th>
+                <th>Наименование нагрузки</th>
+                <th>Марка и сечение</th>
+                <th>Длина</th>
+                <th>Автомат</th>
+                <th>Ток КЗ (1ф)</th>
+                <th>Требуемый Iотс</th>
+                <th>Статус ПУЭ</th>
+              </tr>
+            </thead>
+            <tbody id="batch-table-body">
+              <!-- Заполняется динамически -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Нижняя панель действий -->
+        <div class="batch-action-bar">
+          <div>
+            <strong style="color: var(--text-main);">Готов официальный том расчетов щита</strong>
+            <div class="info-tip" style="margin: 0;">Включает титульный лист, ведомость формул по ГОСТ 28249-93 и ответ на замечание экспертизы</div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button type="button" class="btn-primary" onclick="alert('Модуль сборщика Word (.docx) по ГОСТ 2.105-95 будет активирован на следующем этапе разработки!')" style="width: auto;">
+              📄 Сформировать полный том Word (.docx)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
   </main>

@@ -9,6 +9,11 @@ import {
   STANDARD_CROSS_SECTIONS,
   STANDARD_BREAKER_RATINGS,
   getTransformerParameters,
+  parseExcelWorkbook,
+  calculateBatchLines,
+  generateSampleExcelWorkbook,
+  type ParsedCableLine,
+  type BatchCalculationSummary,
 } from '../core/index.ts';
 
 // Состояние формы одиночной линии
@@ -44,6 +49,11 @@ const state = {
   breakerRatedA: 16,
   breakerCurve: 'C' as 'B' | 'C' | 'D',
   safetyFactor: 1.1,
+
+  // Состояние пакетной обработки Excel
+  batchSummary: null as BatchCalculationSummary | null,
+  batchFilter: 'all' as 'all' | 'fails' | 'passed',
+  batchSearchQuery: '',
 };
 
 // Инициализация интерфейса
@@ -53,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateDropdowns();
   bindEvents();
   renderSections();
+  initBatchExcel();
   recalculate();
 });
 
@@ -417,4 +428,251 @@ function recalculate() {
       </tr>
     `;
   }
+}
+
+// -----------------------------------------------------------------------------
+// Инициализация модуля пакетного расчета Excel
+// -----------------------------------------------------------------------------
+function initBatchExcel() {
+  const btnDownloadSample = document.getElementById('btn-download-sample-excel');
+  const dropzone = document.getElementById('excel-dropzone');
+  const fileInput = document.getElementById('excel-file-input') as HTMLInputElement | null;
+  const btnBrowse = document.getElementById('btn-browse-excel');
+  const btnReupload = document.getElementById('btn-reupload-excel');
+  const searchInput = document.getElementById('batch-search-input') as HTMLInputElement | null;
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+
+  // Скачивание образца журнала Excel
+  btnDownloadSample?.addEventListener('click', () => {
+    const u8 = generateSampleExcelWorkbook();
+    const blob = new Blob([u8.buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Кабельный_журнал_шаблон_ГОСТ.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Выбор файла через кнопку
+  btnBrowse?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput?.click();
+  });
+
+  dropzone?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  // Drag & drop события
+  dropzone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+
+  dropzone?.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+
+  dropzone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      processSelectedExcelFile(files[0]);
+    }
+  });
+
+  fileInput?.addEventListener('change', () => {
+    const files = fileInput.files;
+    if (files && files.length > 0) {
+      processSelectedExcelFile(files[0]);
+    }
+  });
+
+  // Кнопка перезагрузки
+  btnReupload?.addEventListener('click', () => {
+    state.batchSummary = null;
+    const uploadCard = document.getElementById('batch-upload-card');
+    const resultsContainer = document.getElementById('batch-results-container');
+    if (uploadCard) uploadCard.style.display = 'block';
+    if (resultsContainer) resultsContainer.style.display = 'none';
+    if (fileInput) fileInput.value = '';
+  });
+
+  // Фильтры
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.batchFilter = (btn.getAttribute('data-filter') as any) || 'all';
+      renderBatchTable();
+    });
+  });
+
+  // Поиск
+  searchInput?.addEventListener('input', (e) => {
+    state.batchSearchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
+    renderBatchTable();
+  });
+}
+
+function processSelectedExcelFile(file: File) {
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const buffer = e.target?.result as ArrayBuffer;
+    if (!buffer) return;
+
+    const startTime = performance.now();
+
+    // 1. Парсинг Excel в оперативной памяти (Zero-Server)
+    const lines = parseExcelWorkbook(buffer);
+
+    if (lines.length === 0) {
+      alert('Не удалось прочитать строки кабельного журнала. Проверьте формат файла Excel или скачайте наш образец.');
+      return;
+    }
+
+    // 2. Расчет всех линий по текущим параметрам источника
+    const summary = calculateBatchLines(lines, {
+      type: state.powerSourceType,
+      transformerPowerKva: state.transformerPowerKva,
+      transformerConnection: state.transformerConnection,
+      vruIk3kA: state.vruIk3kA,
+      vruXrRatio: state.vruXrRatio,
+    });
+
+    const elapsedMs = Math.round(performance.now() - startTime);
+
+    state.batchSummary = summary;
+
+    // 3. Обновление интерфейса
+    const uploadCard = document.getElementById('batch-upload-card');
+    const resultsContainer = document.getElementById('batch-results-container');
+    if (uploadCard) uploadCard.style.display = 'none';
+    if (resultsContainer) resultsContainer.style.display = 'block';
+
+    // Обновление карточек статистики
+    const statTotal = document.getElementById('batch-stat-total');
+    const statOk = document.getElementById('batch-stat-ok');
+    const statFail = document.getElementById('batch-stat-fail');
+    const statSpeed = document.getElementById('batch-stat-speed');
+
+    if (statTotal) statTotal.textContent = String(summary.totalLines);
+    if (statOk) statOk.textContent = String(summary.successCount);
+    if (statFail) statFail.textContent = String(summary.failureCount);
+    if (statSpeed) statSpeed.textContent = `${elapsedMs} мс`;
+
+    // Счетчики на кнопках фильтров
+    const countAll = document.getElementById('count-filter-all');
+    const countFails = document.getElementById('count-filter-fails');
+    const countPassed = document.getElementById('count-filter-passed');
+
+    if (countAll) countAll.textContent = String(summary.totalLines);
+    if (countFails) countFails.textContent = String(summary.failureCount);
+    if (countPassed) countPassed.textContent = String(summary.successCount);
+
+    renderBatchTable();
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function renderBatchTable() {
+  const tbody = document.getElementById('batch-table-body');
+  if (!tbody || !state.batchSummary) return;
+
+  const { lines } = state.batchSummary;
+  const filter = state.batchFilter;
+  const search = state.batchSearchQuery;
+
+  const filtered = lines.filter((line) => {
+    // Фильтр по статусу
+    if (filter === 'fails' && line.calculation?.isPueCompliant) return false;
+    if (filter === 'passed' && !line.calculation?.isPueCompliant) return false;
+
+    // Поиск
+    if (search) {
+      const matchLine = line.lineNumber.toLowerCase().includes(search);
+      const matchConsumer = line.consumerName.toLowerCase().includes(search);
+      const matchCable = line.cableMark.toLowerCase().includes(search);
+      const matchBreaker = line.breakerModel.toLowerCase().includes(search);
+      if (!matchLine && !matchConsumer && !matchCable && !matchBreaker) return false;
+    }
+
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" style="text-align: center; padding: 32px; color: var(--text-dim);">
+          Нет линий, соответствующих выбранному фильтру или поисковому запросу.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered
+    .map((line, idx) => {
+      const calc = line.calculation;
+      const isOk = calc?.isPueCompliant ?? false;
+      const ik1Formatted = calc ? (calc.ik1A >= 1000 ? `${(calc.ik1A / 1000).toFixed(2)} кА` : `${calc.ik1A.toFixed(0)} А`) : '—';
+      const itripFormatted = calc ? `${calc.requiredTripCurrentA.toFixed(0)} А` : '—';
+      const marginFormatted = calc ? `${calc.marginPercent >= 0 ? '+' : ''}${calc.marginPercent.toFixed(1)}%` : '';
+
+      const mainRow = `
+        <tr>
+          <td style="color: var(--text-dim); font-mono;">${idx + 1}</td>
+          <td style="font-weight: 700; color: var(--text-main);">${escapeHtml(line.lineNumber)}</td>
+          <td>${escapeHtml(line.consumerName || '—')}</td>
+          <td>
+            <span style="font-weight: 600;">${escapeHtml(line.cableMark)}</span>
+            <div class="info-tip" style="margin: 0;">${line.material === 'cu' ? 'Cu' : 'Al'} ${line.phaseSectionMm2}/${line.zeroSectionMm2} мм²</div>
+          </td>
+          <td class="mono">${line.lengthM} м</td>
+          <td><span class="code-badge">${escapeHtml(line.breakerModel)}</span></td>
+          <td class="mono" style="font-weight: 700; color: var(--accent-cyan);">${ik1Formatted}</td>
+          <td class="mono">${itripFormatted}</td>
+          <td>
+            <span class="status-badge ${isOk ? 'ok' : 'fail'}">
+              ${isOk ? '✅ ОК (t ≤ 0.1 с)' : '❌ ОТКАЗ'}
+            </span>
+            <div class="info-tip" style="margin-top: 2px; color: ${isOk ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 600;">
+              ${marginFormatted}
+            </div>
+          </td>
+        </tr>
+      `;
+
+      // Если замечание, добавляем подстроку с рекомендацией
+      const recRow = !isOk && calc?.recommendation
+        ? `
+        <tr class="recommendation-subrow">
+          <td></td>
+          <td colspan="8">
+            ⚠️ <strong>Замечание экспертизы:</strong> Ток КЗ (${ik1Formatted}) меньше порога срабатывания автомата (${itripFormatted}).<br>
+            💡 <strong>Рекомендация:</strong> ${escapeHtml(calc.recommendation)}
+          </td>
+        </tr>
+      `
+        : '';
+
+      return mainRow + recRow;
+    })
+    .join('');
+}
+
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

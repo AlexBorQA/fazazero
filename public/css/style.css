@@ -718,3 +718,164 @@ body {
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* Batch Excel View Styles */
+.batch-results-wrapper {
+  margin-top: 24px;
+}
+
+.batch-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.batch-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.batch-stat-card.stat-ok {
+  border-color: var(--accent-green-border);
+  background: var(--accent-green-bg);
+}
+
+.batch-stat-card.stat-fail {
+  border-color: var(--accent-red-border);
+  background: var(--accent-red-bg);
+}
+
+.batch-stat-num {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.batch-stat-card.stat-ok .batch-stat-num { color: var(--accent-green); }
+.batch-stat-card.stat-fail .batch-stat-num { color: var(--accent-red); }
+
+.batch-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.batch-filter-btns {
+  display: inline-flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.filter-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn.active {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.batch-search-box {
+  min-width: 260px;
+  max-width: 380px;
+  flex: 1;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.batch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.batch-table th {
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-dim);
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.batch-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.batch-table tr:hover td {
+  background: var(--bg-card-hover);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.status-badge.ok {
+  background: var(--accent-green-bg);
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green-border);
+}
+
+.status-badge.fail {
+  background: var(--accent-red-bg);
+  color: var(--accent-red);
+  border: 1px solid var(--accent-red-border);
+}
+
+.recommendation-subrow {
+  background: rgba(245, 158, 11, 0.08);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.recommendation-subrow td {
+  padding: 8px 14px 10px;
+  color: #fde68a;
+  font-size: 12px;
+}
+
+.batch-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 20px;
+}
+

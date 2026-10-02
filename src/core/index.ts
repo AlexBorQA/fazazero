@@ -8,3 +8,4 @@ export * from './cables.ts';
 export * from './transformers.ts';
 export * from './circuitBreakers.ts';
 export * from './calculator.ts';
+export * from './excelParser.ts';
