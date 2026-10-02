@@ -12,6 +12,7 @@ yarn-error.log*
 dist/
 build/
 .cache/
+.wrangler/
 
 # Environment
 .env
