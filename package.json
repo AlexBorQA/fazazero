@@ -4,8 +4,8 @@
   "description": "Пакетный генератор томов расчета петли «фаза-ноль» и токов КЗ по ГОСТ 28249-93 и ПУЭ-7",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/core/index.ts --bundle --format=esm --outfile=public/js/core.js",
-    "build:prod": "esbuild src/core/index.ts --bundle --format=esm --minify --outfile=public/js/core.js",
+    "build": "esbuild src/core/index.ts --bundle --format=esm --outfile=public/js/core.js && esbuild src/ui/app.ts --bundle --format=esm --outfile=public/js/app.js",
+    "build:prod": "esbuild src/core/index.ts --bundle --format=esm --minify --outfile=public/js/core.js && esbuild src/ui/app.ts --bundle --format=esm --minify --outfile=public/js/app.js",
     "test": "node --test src/core/__tests__/*.test.ts"
   },
   "keywords": [

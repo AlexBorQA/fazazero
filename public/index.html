@@ -3,151 +3,334 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fazazero (КЗ-Эксперт) — Пакетный расчет токов КЗ и петли «фаза-ноль» по ГОСТ</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
-      --accent: #38bdf8;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --success: #10b981;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 760px;
-      width: 100%;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      margin-bottom: 20px;
-    }
-    h1 {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
-    h1 span {
-      color: var(--accent);
-    }
-    p.lead {
-      font-size: 18px;
-      color: var(--text-muted);
-      margin-bottom: 28px;
-    }
-    .features {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-    @media (min-width: 600px) {
-      .features { grid-template-columns: 1fr 1fr; }
-    }
-    .feature-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 20px;
-    }
-    .feature-card h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 6px;
-    }
-    .feature-card p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    .status-box {
-      border-top: 1px solid var(--border);
-      padding-top: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--success);
-      font-weight: 600;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      background: var(--success);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--success);
-    }
-  </style>
+  <title>Fazazero (КЗ-Эксперт) — Инженерный расчет токов КЗ и петли фаза-ноль по ГОСТ 28249-93 и ПУЭ-7</title>
+  <meta name="description" content="Пакетный онлайн-генератор томов расчета петли фаза-ноль по ГОСТ 28249-93 и ПУЭ-7. 100% Client-Side Zero-Server SaaS для государственной экспертизы.">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="badge">100% Client-Side SaaS · Zero-Server</div>
-    <h1>Fazazero <span>(КЗ-Эксперт)</span></h1>
-    <p class="lead">Пакетный генератор томов расчета петли «фаза-ноль» и токов короткого замыкания по ГОСТ 28249-93 и ПУЭ-7 для государственной экспертизы.</p>
 
-    <div class="features">
-      <div class="feature-card">
-        <h3>⚡ Пакетный расчет</h3>
-        <p>Импорт кабельного журнала из Excel и расчет сотен линий за секунды прямо в браузере.</p>
-      </div>
-      <div class="feature-card">
-        <h3>🔒 Air-Gap Безопасность</h3>
-        <p>Данные объекта не покидают компьютер инженера. 100% защита коммерческой и гостайны.</p>
-      </div>
-      <div class="feature-card">
-        <h3>📄 Выгрузка по ГОСТ</h3>
-        <p>Генерация готового тома расчетов в формате Word (.docx) по ГОСТ 2.105-95 со штампами.</p>
-      </div>
-      <div class="feature-card">
-        <h3>⚖️ Иммунитет 152-ФЗ</h3>
-        <p>Сервер и базы данных отсутствуют. Нулевой сбор персональных и объектных данных.</p>
+  <!-- Шапка сервиса -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="/" class="brand">
+        <div class="logo-badge">FZ</div>
+        <div class="brand-title">Fazazero <span>(КЗ-Эксперт)</span></div>
+      </a>
+      <div class="header-badges">
+        <span class="badge-zero">🔒 Zero-Server · Air-Gap</span>
+        <span class="badge-norm">ГОСТ 28249-93</span>
+        <span class="badge-norm">ПУЭ-7 п. 1.7.79</span>
       </div>
     </div>
+  </header>
 
-    <div class="status-box">
-      <div class="status-indicator">
-        <div class="status-dot"></div>
-        <span>Платформа развернута на Cloudflare</span>
+  <!-- Информационная лента конфиденциальности -->
+  <div class="security-ribbon">
+    <div class="security-ribbon-inner">
+      <div>
+        🛡️ <strong>100% Конфиденциальность (Air-Gap):</strong> Расчет выполняется строго в памяти браузера. Данные кабельных линий объекта не передаются в сеть.
       </div>
-      <div>Репозиторий: GitHub (ветка <code>main</code>)</div>
+      <div>
+        <a class="open-security-modal">Инструкция для СБ / Проверка без интернета ▾</a>
+      </div>
     </div>
   </div>
+
+  <!-- Вкладки режимов -->
+  <nav class="tabs-nav">
+    <button type="button" class="tab-btn active" data-tab="tab-express">
+      ⚡ Одиночная линия-экспресс
+      <span class="tab-pill">Live</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="tab-batch">
+      📁 Пакетный расчет из Excel
+      <span class="tab-pill">.xlsx</span>
+    </button>
+  </nav>
+
+  <!-- Основной контур приложения -->
+  <main class="main-content">
+
+    <!-- ВКЛАДКА 1: ОДИНОЧНАЯ ЛИНИЯ -->
+    <div id="tab-express" class="tab-pane active">
+      <div class="calc-grid">
+        
+        <!-- Левая колонка: Входные параметры -->
+        <div class="calc-inputs-col">
+
+          <!-- Блок 1: Источник питания -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="step-num">1</span>
+                <span>Параметры источника питания</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Тип головного узла сети</label>
+              <div class="toggle-group">
+                <button type="button" id="btn-src-tp" class="toggle-btn active">
+                  Трансформатор ТП (Раздел ЭС)
+                </button>
+                <button type="button" id="btn-src-vru" class="toggle-btn">
+                  Ввод ВРУ здания (Раздел ЭОМ по ТУ)
+                </button>
+              </div>
+            </div>
+
+            <!-- Режим ТП -->
+            <div id="block-source-tp">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="tp-power">Мощность трансформатора</label>
+                  <select id="tp-power" class="form-select">
+                    <!-- Заполняется динамически -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="tp-connection">Схема соединения обмоток</label>
+                  <select id="tp-connection" class="form-select">
+                    <option value="D/Yn-11" selected>D/Yн-11 (Треугольник - Звезда с нулем)</option>
+                    <option value="Y/Yn-0">Y/Yн-0 (Звезда - Звезда с нулем)</option>
+                  </select>
+                </div>
+              </div>
+              <div id="tp-specs-label" class="info-tip">Паспортные данные трансформатора загружаются...</div>
+            </div>
+
+            <!-- Режим ВРУ -->
+            <div id="block-source-vru" style="display: none;">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="vru-ik3">Ток 3-фазного КЗ на шинах ВРУ, кА</label>
+                  <input type="number" id="vru-ik3" class="form-input" value="12.5" min="0.5" max="100" step="0.5">
+                  <div class="info-tip">По техническим условиям (ТУ) сетевой организации</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="vru-xr">Отношение реактивного к активному (X/R)</label>
+                  <input type="number" id="vru-xr" class="form-input" value="3.5" min="1" max="10" step="0.1">
+                  <div class="info-tip">Стандартное соотношение для сетей 0.4 кВ: 3.0 – 4.0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Блок 2: Кабельные звенья цепи -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="step-num">2</span>
+                <span>Кабельная цепь (многозвенный каскад)</span>
+              </div>
+              <span class="info-tip" style="margin: 0;">ГОСТ 28249-93 п. 2.2 (+65 °C)</span>
+            </div>
+
+            <div id="sections-container">
+              <!-- Карточки звеньев генерируются скриптом -->
+            </div>
+
+            <button type="button" id="btn-add-section" class="btn-add-section">
+              + Добавить промежуточный участок (стояк / магистраль / распредщит)
+            </button>
+          </div>
+
+          <!-- Блок 3: Защитный аппарат -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="step-num">3</span>
+                <span>Защитный аппарат (Автоматический выключатель)</span>
+              </div>
+            </div>
+
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label" for="breaker-rating">Номинальный ток автомата (In)</label>
+                <select id="breaker-rating" class="form-select">
+                  <!-- Заполняется скриптом -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="breaker-curve">Характеристика расцепителя</label>
+                <select id="breaker-curve" class="form-select">
+                  <option value="B">Кривая B (кратность 3–5 In, бытовые розетки/длинные линии)</option>
+                  <option value="C" selected>Кривая C (кратность 5–10 In, стандартное освещение/розетки)</option>
+                  <option value="D">Кривая D (кратность 10–14 In, трансформаторы/станки)</option>
+                </select>
+              </div>
+            </div>
+            <div class="info-tip">
+              Критерий ПУЭ-7 (п. 1.7.79): ток однофазного КЗ должен превышать порог надежного отключения электромагнитной отсечки с коэффициентом запаса 1.1 (t ≤ 0.1 с).
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Правая колонка: Табло результатов (Sticky) -->
+        <div class="calc-results-col">
+          <div class="sticky-panel">
+
+            <!-- Карточка вердикта экспертизы -->
+            <div id="verdict-card" class="verdict-card success">
+              <div id="verdict-badge" class="verdict-badge">Расчет выполнен</div>
+              <div id="verdict-title" class="verdict-title">Проверка условий ПУЭ-7...</div>
+              <div id="verdict-desc" class="verdict-desc">Подождите...</div>
+              <div id="recommendation-box" class="recommendation-box" style="display: none;"></div>
+            </div>
+
+            <!-- Числовые метрики -->
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label">Ток 1-фазного КЗ (Iкз)</div>
+                <div id="val-ik1" class="metric-value cyan">0 А</div>
+                <div class="metric-unit">при Uф = 230 В</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Требуемый ток отсечки</div>
+                <div id="val-itrip" class="metric-value">0 А</div>
+                <div class="metric-unit">1.1 × Iсраб.макс</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Петля «фаза-ноль» (Zп-н)</div>
+                <div id="val-zloop" class="metric-value">0 Ом</div>
+                <div class="metric-unit">полное комплексное</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Запас надежности</div>
+                <div id="val-margin" class="metric-value green">+0%</div>
+                <div class="metric-unit">по кратности отсечки</div>
+              </div>
+            </div>
+
+            <!-- Развернутая таблица сопротивлений -->
+            <div class="card" style="padding: 16px; margin-bottom: 20px;">
+              <div class="card-header" style="margin-bottom: 12px;">
+                <div class="card-title" style="font-size: 14px;">
+                  <span>Ведомость сопротивлений цепи (Ом)</span>
+                </div>
+              </div>
+              <div style="overflow-x: auto;">
+                <table class="breakdown-table">
+                  <thead>
+                    <tr>
+                      <th>Участок контура</th>
+                      <th>R (актив.)</th>
+                      <th>X (индукт.)</th>
+                      <th>Z (полное)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="breakdown-tbody">
+                    <!-- Заполняется скриптом -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Кнопка выгрузки тома документации -->
+            <button type="button" class="btn-primary" onclick="alert('Модуль выгрузки тома Word по ГОСТ 2.105-95 будет активирован на следующем этапе разработки!')">
+              📄 Сформировать том документации Word (.docx)
+            </button>
+            <div class="info-tip" style="text-align: center; margin-top: 8px;">
+              Формирует официальную пояснительную записку со штампами ЕСКД по ГОСТ 2.105-95 для экспертизы
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ВКЛАДКА 2: ПАКЕТНЫЙ РАСЧЕТ ИЗ EXCEL -->
+    <div id="tab-batch" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>Пакетная обработка кабельного журнала (.xlsx)</span>
+          </div>
+          <a href="#" class="btn-outline" onclick="alert('Шаблон кабельного журнала Excel будет доступен на Шаге 3.'); return false;">
+            📥 Скачать шаблон таблицы (.xlsx)
+          </a>
+        </div>
+
+        <div class="dropzone" id="excel-dropzone">
+          <div class="dropzone-icon">📊</div>
+          <div class="dropzone-title">Перетащите сюда файл кабельного журнала (.xlsx)</div>
+          <div class="dropzone-desc">или нажмите для выбора файла на вашем компьютере</div>
+          <button type="button" class="btn-outline">Выбрать файл Excel</button>
+        </div>
+
+        <div style="margin-top: 24px; font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+          <h4 style="color: var(--text-main); margin-bottom: 8px;">Как работает пакетный расчет:</h4>
+          <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
+            <li>Вы перетаскиваете существующий кабельный журнал щита (ВРУ, ГРЩ, ЩО, ЩС).</li>
+            <li>Алгоритм автоматически сопоставляет столбцы: <em>Номер линии, Марка кабеля, Сечение фазной и нулевой жилы, Длина, Тип автомата</em>.</li>
+            <li>За 0.05 секунды в памяти браузера рассчитываются сотни отходящих линий.</li>
+            <li>На экране формируется сводная ведомость с мгновенной подсветкой линий, не проходящих по условию электробезопасности.</li>
+            <li>В 1 клик формируется готовый том пояснительной записки в формате Word по ГОСТ 2.105-95.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Модальное окно: Протокол проверки для СБ -->
+  <div id="security-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--accent-cyan);">
+          🛡️ Протокол изоляции данных (Zero-Server / Air-Gap)
+        </h3>
+        <button type="button" id="close-security-modal" class="btn-close">&times;</button>
+      </div>
+
+      <div style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+        <p style="margin-bottom: 16px;">
+          Служба безопасности проектных институтов и отделы режима обоснованно требуют гарантий неразглашения топологии кабельных сетей. Сервис Fazazero спроектирован по стандарту <strong>Zero-Data Immunity</strong>:
+        </p>
+
+        <div class="audit-step">
+          <strong style="color: var(--text-main);">Тест «Выдерни шнур» (Физический Air-Gap):</strong>
+          <div>Откройте эту страницу, полностью отключите Wi-Fi или проводной интернет на компьютере. Сервис продолжает рассчитывать любые токи КЗ и кабельные цепочки без единого байта сетевой связи.</div>
+        </div>
+
+        <div class="audit-step">
+          <strong style="color: var(--text-main);">Аудит через консоль разработчика (F12):</strong>
+          <div>Нажмите F12 ➔ вкладка <span class="code-badge">Network</span> (фильтр Fetch/XHR). При изменении параметров и расчете счетчик запросов показывает: <span class="code-badge">0 requests, 0 bytes transferred</span>.</div>
+        </div>
+
+        <div class="audit-step">
+          <strong style="color: var(--text-main);">Блокировка на уровне браузерного движка (CSP):</strong>
+          <div>HTTP-политика безопасности запрещает браузеру любые сетевые подключения вовне (<span class="code-badge">connect-src 'none'</span>).</div>
+        </div>
+
+        <div class="audit-step">
+          <strong style="color: var(--text-main);">Правовой иммунитет по 152-ФЗ:</strong>
+          <div>Сервис не ведет сбор персональных данных, не требует регистрации и не имеет серверных баз данных. Данные живут исключительно во вкладке браузера до закрытия страницы.</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; text-align: right;">
+        <button type="button" class="btn-outline" onclick="document.getElementById('security-modal').classList.remove('open');">
+          Понятно, закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Подвал сайта -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        Fazazero © 2026. Инженерный калькулятор токов КЗ и петли «фаза-ноль» по ГОСТ 28249-93 и ПУЭ-7.
+      </div>
+      <div>
+        100% Client-Side SaaS · Безопасность Air-Gap · Самозанятость (НПД)
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
