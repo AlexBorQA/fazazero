@@ -57,7 +57,7 @@ const state = {
 };
 
 // Инициализация интерфейса
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   initTabs();
   initSecurityModal();
   populateDropdowns();
@@ -65,7 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSections();
   initBatchExcel();
   recalculate();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 // Переключение табов
 function initTabs() {
