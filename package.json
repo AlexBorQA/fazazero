@@ -1,0 +1,23 @@
+{
+  "name": "fazazero",
+  "version": "0.1.0",
+  "description": "Пакетный генератор томов расчета петли «фаза-ноль» и токов КЗ по ГОСТ 28249-93 и ПУЭ-7",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/core/index.ts --bundle --format=esm --outfile=public/js/core.js",
+    "build:prod": "esbuild src/core/index.ts --bundle --format=esm --minify --outfile=public/js/core.js",
+    "test": "node --test src/core/__tests__/*.test.ts"
+  },
+  "keywords": [
+    "gost-28249-93",
+    "pue-7",
+    "short-circuit",
+    "phase-zero",
+    "electrical-engineering"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
