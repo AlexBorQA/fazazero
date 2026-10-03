@@ -74,6 +74,21 @@ export interface CableSectionCalculation {
   zTotalSectionOhm: number;
 }
 
+export interface BreakerEvaluationResult {
+  ratedCurrentA: number;
+  curve: string;
+  instantaneousMultiplier: number;
+  maxTripThresholdA: number; // Верхняя граница электромагнитного расцепителя I_отс
+  safetyFactor: number; // Коэффициент надежности по ПУЭ (по умолчанию 1.1)
+  requiredTripCurrentA: number; // Минимально необходимый расчетный ток КЗ: I_треб = k_над * I_отс
+  actualTripRatio: number; // Кратность фактического тока: I_кз / I_n
+  marginPercent: number; // Запас (+%) или дефицит (-%)
+  isCompliant: boolean; // Выполняется ли ПУЭ п. 1.7.79
+  tripTimeSeconds: number; // Время отключения при срабатывании отсечки (<= 0.1 c)
+  statusText: string;
+  recommendation?: string;
+}
+
 export interface CalculationResult {
   // Источник питания:
   sourceType: PowerSourceType;
@@ -109,3 +124,89 @@ export interface CalculationResult {
   statusMessage: string;
   recommendation?: string;
 }
+
+// -----------------------------------------------------------------------------
+// Каскадный расчет многозвенной магистрали (Экран 2: "Каскадная магистраль")
+// -----------------------------------------------------------------------------
+
+export interface CascadeTierInput {
+  name?: string; // Наименование звена ("Магистраль ВРУ - ГРЩ", "Стояк 1-5 этаж", "Групповой щит ЩО")
+  cable: CableSectionInput; // Параметры кабельной линии участка
+  circuitBreaker?: CircuitBreakerInput; // Аппарат защиты в начале данного участка
+}
+
+export interface CascadeCalculationInput {
+  powerSource: PowerSourceInput;
+  tiers: CascadeTierInput[];
+  settings?: CalculationSettings;
+}
+
+export interface CascadeTierResult {
+  index: number;
+  name: string;
+  section: CableSectionCalculation;
+  cumulativeLengthM: number;
+  cumulativeR_Ohm: number;
+  cumulativeX_Ohm: number;
+  loopImpedanceZ_Ohm: number;
+  ik1A: number;
+  ik1kA: number;
+  circuitBreaker?: CircuitBreakerInput;
+  breakerEvaluation?: BreakerEvaluationResult;
+}
+
+export interface CascadeCalculationResult {
+  sourceType: PowerSourceType;
+  sourceDescription: string;
+  sourceR_Ohm: number;
+  sourceX_Ohm: number;
+  sourceZ_Ohm: number;
+
+  tiers: CascadeTierResult[];
+  totalLengthM: number;
+  totalR_Ohm: number;
+  totalX_Ohm: number;
+  totalLoopImpedanceZ_Ohm: number;
+  endIk1A: number; // Ток КЗ в самом конце всей магистрали
+  endIk1kA: number;
+
+  overallIsPueCompliant: boolean;
+  totalBreakersCount: number;
+  passedBreakersCount: number;
+  failedBreakersCount: number;
+}
+
+// -----------------------------------------------------------------------------
+// Стратегии устранения замечаний и проектных коллизий (п. 1.7.79 ПУЭ-7)
+// -----------------------------------------------------------------------------
+
+export type LineCorrectionType = 'none' | 'curve_b' | 'section_up' | 'rcd_30ma';
+
+export interface CorrectionOption {
+  type: LineCorrectionType;
+  title: string;
+  badgeText: string;
+  description: string;
+  isRecommended?: boolean;
+  isWarning?: boolean;
+  warningText?: string;
+  targetBreakerCurve?: BreakerCurveType;
+  targetPhaseSectionMm2?: number;
+  targetZeroSectionMm2?: number;
+  projectedIk1A: number;
+  projectedMarginPercent: number;
+  isPueCompliant: boolean;
+  rationale: string; // Нормативное обоснование для экспертизы
+}
+
+export interface LineRemediationRecord {
+  lineNumber: string; // Обозначение линии (например "ЩР-1. Гр. 5")
+  consumerName: string; // "Розетки бытовой техники кухни"
+  originalBreaker: string; // "C16 (16 А, кривая C)"
+  originalCable: string; // "ВВГнг(А)-LS 3х2.5 мм²"
+  appliedType: LineCorrectionType;
+  adoptedSolution: string; // "Замена ВА на кривую B (B16)" / "Увеличение сечения до 3х4.0 мм²" / "Установка АВДТ 16А/30мА"
+  rationale: string; // Ссылка на ГОСТ 28249-93 / п. 1.7.79 ПУЭ-7
+  drawingSheetRef: string; // Рекомендация для графической части (например "Лист схемы ЭОМ")
+}
+

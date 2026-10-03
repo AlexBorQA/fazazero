@@ -5,18 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fazazero (КЗ-Эксперт) — Инженерный расчет токов КЗ и петли фаза-ноль по ГОСТ 28249-93 и ПУЭ-7</title>
   <meta name="description" content="Пакетный онлайн-генератор томов расчета петли фаза-ноль по ГОСТ 28249-93 и ПУЭ-7. 100% Client-Side Zero-Server SaaS для государственной экспертизы.">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self';">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fazazero">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
   <!-- Шапка сервиса -->
   <header class="header">
     <div class="header-inner">
-      <a href="/" class="brand">
+      <a href="./" class="brand">
         <div class="logo-badge">FZ</div>
         <div class="brand-title">Fazazero <span>(КЗ-Эксперт)</span></div>
       </a>
       <div class="header-badges">
+        <button type="button" class="badge-app-btn open-security-modal" title="Установить автономное приложение Fazazero на компьютер (macOS / Windows)">
+          💻 Приложение на ПК <span class="badge-app-pill">B2B Pro</span>
+        </button>
         <span class="badge-zero">🔒 Zero-Server · Air-Gap</span>
         <span class="badge-norm">ГОСТ 28249-93</span>
         <span class="badge-norm">ПУЭ-7 п. 1.7.79</span>
@@ -31,19 +43,23 @@
         🛡️ <strong>100% Конфиденциальность (Air-Gap):</strong> Расчет выполняется строго в памяти браузера. Данные кабельных линий объекта не передаются в сеть.
       </div>
       <div>
-        <a class="open-security-modal">Инструкция для СБ / Проверка без интернета ▾</a>
+        <a class="open-security-modal">Инструкция для СБ / Приложение на ПК ▾</a>
       </div>
     </div>
   </div>
 
-  <!-- Вкладки режимов -->
+  <!-- Вкладки режимов: 3 независимых инженерных экрана -->
   <nav class="tabs-nav">
-    <button type="button" class="tab-btn active" data-tab="tab-express">
-      ⚡ Одиночная линия-экспресс
-      <span class="tab-pill">Live</span>
+    <button type="button" class="tab-btn active" data-tab="tab-single">
+      ⚡ Экспресс-линия
+      <span class="tab-pill">1 кабель</span>
+    </button>
+    <button type="button" class="tab-btn" data-tab="tab-cascade">
+      🔗 Каскадная магистраль
+      <span class="tab-pill">до 10 звеньев</span>
     </button>
     <button type="button" class="tab-btn" data-tab="tab-batch">
-      📁 Пакетный расчет из Excel
+      📊 Кабельный журнал щита
       <span class="tab-pill">.xlsx</span>
     </button>
   </nav>
@@ -51,8 +67,10 @@
   <!-- Основной контур приложения -->
   <main class="main-content">
 
-    <!-- ВКЛАДКА 1: ОДИНОЧНАЯ ЛИНИЯ -->
-    <div id="tab-express" class="tab-pane active">
+    <!-- =================================================================== -->
+    <!-- ЭКРАН 1: ОДИНОЧНАЯ ЛИНИЯ-ЭКСПРЕСС (1 КАБЕЛЬ + 1 АВТОМАТ)           -->
+    <!-- =================================================================== -->
+    <div id="tab-single" class="tab-pane active">
       <div class="calc-grid">
         
         <!-- Левая колонка: Входные параметры -->
@@ -70,69 +88,90 @@
             <div class="form-group">
               <label class="form-label">Тип головного узла сети</label>
               <div class="toggle-group">
-                <button type="button" id="btn-src-tp" class="toggle-btn active">
+                <button type="button" id="single-btn-src-tp" class="toggle-btn active">
                   Трансформатор ТП (Раздел ЭС)
                 </button>
-                <button type="button" id="btn-src-vru" class="toggle-btn">
+                <button type="button" id="single-btn-src-vru" class="toggle-btn">
                   Ввод ВРУ здания (Раздел ЭОМ по ТУ)
                 </button>
               </div>
             </div>
 
             <!-- Режим ТП -->
-            <div id="block-source-tp">
+            <div id="single-block-source-tp">
               <div class="form-row form-row-2">
                 <div class="form-group">
-                  <label class="form-label" for="tp-power">Мощность трансформатора</label>
-                  <select id="tp-power" class="form-select">
+                  <label class="form-label" for="single-tp-power">Мощность трансформатора</label>
+                  <select id="single-tp-power" class="form-select">
                     <!-- Заполняется динамически -->
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="tp-connection">Схема соединения обмоток</label>
-                  <select id="tp-connection" class="form-select">
+                  <label class="form-label" for="single-tp-connection">Схема соединения обмоток</label>
+                  <select id="single-tp-connection" class="form-select">
                     <option value="D/Yn-11" selected>D/Yн-11 (Треугольник - Звезда с нулем)</option>
                     <option value="Y/Yn-0">Y/Yн-0 (Звезда - Звезда с нулем)</option>
                   </select>
                 </div>
               </div>
-              <div id="tp-specs-label" class="info-tip">Паспортные данные трансформатора загружаются...</div>
+              <div id="single-tp-specs-label" class="info-tip">Паспортные данные трансформатора загружаются...</div>
             </div>
 
             <!-- Режим ВРУ -->
-            <div id="block-source-vru" style="display: none;">
+            <div id="single-block-source-vru" style="display: none;">
               <div class="form-row form-row-2">
                 <div class="form-group">
-                  <label class="form-label" for="vru-ik3">Ток 3-фазного КЗ на шинах ВРУ, кА</label>
-                  <input type="number" id="vru-ik3" class="form-input" value="12.5" min="0.5" max="100" step="0.5">
+                  <label class="form-label" for="single-vru-ik3">Ток 3-фазного КЗ на шинах ВРУ, кА</label>
+                  <input type="number" id="single-vru-ik3" class="form-input" value="12.5" min="0.5" max="100" step="0.5">
                   <div class="info-tip">По техническим условиям (ТУ) сетевой организации</div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="vru-xr">Отношение реактивного к активному (X/R)</label>
-                  <input type="number" id="vru-xr" class="form-input" value="3.5" min="1" max="10" step="0.1">
+                  <label class="form-label" for="single-vru-xr">Отношение реактивного к активному (X/R)</label>
+                  <input type="number" id="single-vru-xr" class="form-input" value="3.5" min="1" max="10" step="0.1">
                   <div class="info-tip">Стандартное соотношение для сетей 0.4 кВ: 3.0 – 4.0</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Блок 2: Кабельные звенья цепи -->
+          <!-- Блок 2: Кабельная линия -->
           <div class="card">
             <div class="card-header">
               <div class="card-title">
                 <span class="step-num">2</span>
-                <span>Кабельная цепь (многозвенный каскад)</span>
+                <span>Кабельная линия (1 участок)</span>
               </div>
               <span class="info-tip" style="margin: 0;">ГОСТ 28249-93 п. 2.2 (+65 °C)</span>
             </div>
 
-            <div id="sections-container">
-              <!-- Карточки звеньев генерируются скриптом -->
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label" for="single-cable-material">Материал жил</label>
+                <select id="single-cable-material" class="form-select">
+                  <option value="cu" selected>Медь (Cu) — ВВГнг, ППГнг</option>
+                  <option value="al">Алюминий (Al) — АВВГ, АСБ</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="single-cable-length">Длина трассы, м</label>
+                <input type="number" id="single-cable-length" class="form-input" value="35" min="1" max="2000" step="1">
+              </div>
             </div>
 
-            <button type="button" id="btn-add-section" class="btn-add-section">
-              + Добавить промежуточный участок (стояк / магистраль / распредщит)
-            </button>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label" for="single-cable-phase">Сечение фазной жилы (мм²)</label>
+                <select id="single-cable-phase" class="form-select">
+                  <!-- Заполняется динамически -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="single-cable-zero">Сечение нуля N / PE (мм²)</label>
+                <select id="single-cable-zero" class="form-select">
+                  <!-- Заполняется динамически -->
+                </select>
+              </div>
+            </div>
           </div>
 
           <!-- Блок 3: Защитный аппарат -->
@@ -146,14 +185,14 @@
 
             <div class="form-row form-row-2">
               <div class="form-group">
-                <label class="form-label" for="breaker-rating">Номинальный ток автомата (In)</label>
-                <select id="breaker-rating" class="form-select">
+                <label class="form-label" for="single-breaker-rating">Номинальный ток автомата (In)</label>
+                <select id="single-breaker-rating" class="form-select">
                   <!-- Заполняется скриптом -->
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label" for="breaker-curve">Характеристика расцепителя</label>
-                <select id="breaker-curve" class="form-select">
+                <label class="form-label" for="single-breaker-curve">Характеристика расцепителя</label>
+                <select id="single-breaker-curve" class="form-select">
                   <option value="B">Кривая B (кратность 3–5 In, бытовые розетки/длинные линии)</option>
                   <option value="C" selected>Кривая C (кратность 5–10 In, стандартное освещение/розетки)</option>
                   <option value="D">Кривая D (кратность 10–14 In, трансформаторы/станки)</option>
@@ -172,33 +211,33 @@
           <div class="sticky-panel">
 
             <!-- Карточка вердикта экспертизы -->
-            <div id="verdict-card" class="verdict-card success">
-              <div id="verdict-badge" class="verdict-badge">Расчет выполнен</div>
-              <div id="verdict-title" class="verdict-title">Проверка условий ПУЭ-7...</div>
-              <div id="verdict-desc" class="verdict-desc">Подождите...</div>
-              <div id="recommendation-box" class="recommendation-box" style="display: none;"></div>
+            <div id="single-verdict-card" class="verdict-card success">
+              <div id="single-verdict-badge" class="verdict-badge">Расчет выполнен</div>
+              <div id="single-verdict-title" class="verdict-title">Проверка условий ПУЭ-7...</div>
+              <div id="single-verdict-desc" class="verdict-desc">Подождите...</div>
+              <div id="single-recommendation-box" class="recommendation-box" style="display: none;"></div>
             </div>
 
             <!-- Числовые метрики -->
             <div class="metrics-grid">
               <div class="metric-item">
                 <div class="metric-label">Ток 1-фазного КЗ (Iкз)</div>
-                <div id="val-ik1" class="metric-value cyan">0 А</div>
+                <div id="single-val-ik1" class="metric-value cyan">0 А</div>
                 <div class="metric-unit">при Uф = 230 В</div>
               </div>
               <div class="metric-item">
                 <div class="metric-label">Требуемый ток отсечки</div>
-                <div id="val-itrip" class="metric-value">0 А</div>
+                <div id="single-val-itrip" class="metric-value">0 А</div>
                 <div class="metric-unit">1.1 × Iсраб.макс</div>
               </div>
               <div class="metric-item">
                 <div class="metric-label">Петля «фаза-ноль» (Zп-н)</div>
-                <div id="val-zloop" class="metric-value">0 Ом</div>
+                <div id="single-val-zloop" class="metric-value">0 Ом</div>
                 <div class="metric-unit">полное комплексное</div>
               </div>
               <div class="metric-item">
                 <div class="metric-label">Запас надежности</div>
-                <div id="val-margin" class="metric-value green">+0%</div>
+                <div id="single-val-margin" class="metric-value green">+0%</div>
                 <div class="metric-unit">по кратности отсечки</div>
               </div>
             </div>
@@ -220,7 +259,7 @@
                       <th>Z (полное)</th>
                     </tr>
                   </thead>
-                  <tbody id="breakdown-tbody">
+                  <tbody id="single-breakdown-tbody">
                     <!-- Заполняется скриптом -->
                   </tbody>
                 </table>
@@ -228,7 +267,7 @@
             </div>
 
             <!-- Кнопка выгрузки тома документации -->
-            <button type="button" class="btn-primary" onclick="alert('Модуль выгрузки тома Word по ГОСТ 2.105-95 будет активирован на следующем этапе разработки!')">
+            <button type="button" class="btn-primary" id="btn-export-single-docx">
               📄 Сформировать том документации Word (.docx)
             </button>
             <div class="info-tip" style="text-align: center; margin-top: 8px;">
@@ -241,8 +280,238 @@
       </div>
     </div>
 
-    <!-- ВКЛАДКА 2: ПАКЕТНЫЙ РАСЧЕТ ИЗ EXCEL -->
+    <!-- =================================================================== -->
+    <!-- ЭКРАН 2: КАСКАДНАЯ МАГИСТРАЛЬ (ДО 10 ЗВЕНЬЕВ СО СВОИМИ АВТОМАТАМИ) -->
+    <!-- =================================================================== -->
+    <div id="tab-cascade" class="tab-pane">
+      <div class="calc-grid">
+        
+        <!-- Левая колонка: Входные параметры каскада -->
+        <div class="calc-inputs-col">
+
+          <!-- Блок 1: Источник питания каскада -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="step-num">1</span>
+                <span>Параметры источника питания магистрали</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Тип головного узла сети</label>
+              <div class="toggle-group">
+                <button type="button" id="cascade-btn-src-tp" class="toggle-btn active">
+                  Трансформатор ТП (Раздел ЭС)
+                </button>
+                <button type="button" id="cascade-btn-src-vru" class="toggle-btn">
+                  Ввод ВРУ здания (Раздел ЭОМ по ТУ)
+                </button>
+              </div>
+            </div>
+
+            <!-- Режим ТП -->
+            <div id="cascade-block-source-tp">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="cascade-tp-power">Мощность трансформатора</label>
+                  <select id="cascade-tp-power" class="form-select">
+                    <!-- Заполняется динамически -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cascade-tp-connection">Схема соединения обмоток</label>
+                  <select id="cascade-tp-connection" class="form-select">
+                    <option value="D/Yn-11" selected>D/Yн-11 (Треугольник - Звезда с нулем)</option>
+                    <option value="Y/Yn-0">Y/Yн-0 (Звезда - Звезда с нулем)</option>
+                  </select>
+                </div>
+              </div>
+              <div id="cascade-tp-specs-label" class="info-tip">Паспортные данные трансформатора загружаются...</div>
+            </div>
+
+            <!-- Режим ВРУ -->
+            <div id="cascade-block-source-vru" style="display: none;">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label" for="cascade-vru-ik3">Ток 3-фазного КЗ на шинах ВРУ, кА</label>
+                  <input type="number" id="cascade-vru-ik3" class="form-input" value="12.5" min="0.5" max="100" step="0.5">
+                  <div class="info-tip">По техническим условиям (ТУ) сетевой организации</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cascade-vru-xr">Отношение реактивного к активному (X/R)</label>
+                  <input type="number" id="cascade-vru-xr" class="form-input" value="3.5" min="1" max="10" step="0.1">
+                  <div class="info-tip">Стандартное соотношение для сетей 0.4 кВ: 3.0 – 4.0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Блок 2: Каскадная цепь участков -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <span class="step-num">2</span>
+                <span>Звенья магистрали и аппараты защиты ступеней</span>
+              </div>
+              <span class="info-tip" style="margin: 0;">До 10 ступеней коммутации</span>
+            </div>
+            <div class="info-tip" style="margin-bottom: 16px;">
+              Каждое звено задает параметры кабеля и аппарат защиты в начале участка. Программа рассчитывает ток КЗ в конце участка и проверяет отсечку автомата по ПУЭ-7.
+            </div>
+
+            <div id="cascade-tiers-container">
+              <!-- Ступени каскада генерируются скриптом -->
+            </div>
+
+            <button type="button" id="btn-add-cascade-tier" class="btn-add-section">
+              + Добавить звено магистрали (до 10 ступеней)
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Правая колонка: Результаты каскада (Sticky) -->
+        <div class="calc-results-col">
+          <div class="sticky-panel">
+
+            <!-- Карточка вердикта каскада -->
+            <div id="cascade-verdict-card" class="verdict-card success">
+              <div id="cascade-verdict-badge" class="verdict-badge">Каскад рассчитан</div>
+              <div id="cascade-verdict-title" class="verdict-title">Проверка ступеней защиты...</div>
+              <div id="cascade-verdict-desc" class="verdict-desc">Подождите...</div>
+            </div>
+
+            <!-- Числовые метрики магистрали -->
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-label">Ток КЗ в конце цепи</div>
+                <div id="cascade-val-end-ik1" class="metric-value cyan">0 А</div>
+                <div class="metric-unit">наиболее удаленная точка</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Суммарная длина трассы</div>
+                <div id="cascade-val-total-length" class="metric-value">0 м</div>
+                <div class="metric-unit">всех участков вместе</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Полная петля Zп-н</div>
+                <div id="cascade-val-total-z" class="metric-value">0 Ом</div>
+                <div class="metric-unit">с учетом всех кабелей и ТП</div>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Защита ступеней</div>
+                <div id="cascade-val-breakers-stat" class="metric-value green">0 из 0</div>
+                <div class="metric-unit">отсечка по ПУЭ-7</div>
+              </div>
+            </div>
+
+            <!-- Таблица ступеней защиты каскада -->
+            <div class="card" style="padding: 16px; margin-bottom: 20px;">
+              <div class="card-header" style="margin-bottom: 12px;">
+                <div class="card-title" style="font-size: 14px;">
+                  <span>Ведомость отсечки по ступеням магистрали</span>
+                </div>
+              </div>
+              <div style="overflow-x: auto;">
+                <table class="cascade-table">
+                  <thead>
+                    <tr>
+                      <th>Ступень / Участок</th>
+                      <th>L нак.</th>
+                      <th>Zп-н</th>
+                      <th>Iкз (1ф)</th>
+                      <th>Автомат</th>
+                      <th>Iотс</th>
+                      <th>Статус ПУЭ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cascade-breakdown-tbody">
+                    <!-- Заполняется скриптом -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Кнопка выгрузки тома документации -->
+            <button type="button" class="btn-primary" id="btn-export-cascade-docx">
+              📄 Сформировать том каскадной магистрали Word (.docx)
+            </button>
+            <div class="info-tip" style="text-align: center; margin-top: 8px;">
+              Формирует официальный том по ГОСТ 2.105-95 с анализом ступеней защиты магистрали
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ЭКРАН 3: ПАКЕТНЫЙ РАСЧЕТ ИЗ EXCEL (КАБЕЛЬНЫЙ ЖУРНАЛ ЩИТА)          -->
+    <!-- =================================================================== -->
     <div id="tab-batch" class="tab-pane">
+
+      <!-- ПАНЕЛЬ ИСТОЧНИКА ПИТАНИЯ РАСПРЕДЕЛИТЕЛЬНОГО ЩИТА (ЗАКРЕПЛЕНА ВВЕРХУ) -->
+      <div class="card batch-source-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span style="font-size: 18px;">⚡</span>
+            <span>Параметры источника питания распределительного щита</span>
+          </div>
+          <span class="info-tip" style="margin: 0; color: var(--accent-cyan);">
+            🔄 Автоматический мгновенный пересчет при смене параметров
+          </span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label">Тип головного узла питания щита</label>
+          <div class="toggle-group">
+            <button type="button" id="batch-btn-src-tp" class="toggle-btn active">
+              Трансформатор ТП (Раздел ЭС)
+            </button>
+            <button type="button" id="batch-btn-src-vru" class="toggle-btn">
+              Ввод ВРУ здания (Раздел ЭОМ по ТУ)
+            </button>
+          </div>
+        </div>
+
+        <!-- Режим ТП -->
+        <div id="batch-block-source-tp">
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="batch-tp-power">Мощность трансформатора</label>
+              <select id="batch-tp-power" class="form-select">
+                <!-- Заполняется динамически -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="batch-tp-connection">Схема соединения обмоток</label>
+              <select id="batch-tp-connection" class="form-select">
+                <option value="D/Yn-11" selected>D/Yн-11 (Треугольник - Звезда с нулем, город)</option>
+                <option value="Y/Yn-0">Y/Yн-0 (Звезда - Звезда с нулем, сельская ТП)</option>
+              </select>
+            </div>
+          </div>
+          <div id="batch-tp-specs-label" class="info-tip">Паспортные данные трансформатора загружаются...</div>
+        </div>
+
+        <!-- Режим ВРУ -->
+        <div id="batch-block-source-vru" style="display: none;">
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="batch-vru-ik3">Ток 3-фазного КЗ на шинах ВРУ, кА</label>
+              <input type="number" id="batch-vru-ik3" class="form-input" value="12.5" min="0.5" max="100" step="0.5">
+              <div class="info-tip">По техническим условиям (ТУ) сетевой организации</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="batch-vru-xr">Отношение реактивного к активному (X/R)</label>
+              <input type="number" id="batch-vru-xr" class="form-input" value="3.5" min="1" max="10" step="0.1">
+              <div class="info-tip">Стандартное соотношение для сетей 0.4 кВ: 3.0 – 4.0</div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <!-- Карточка загрузки Excel -->
       <div id="batch-upload-card" class="card">
@@ -250,9 +519,14 @@
           <div class="card-title">
             <span>Пакетная обработка кабельного журнала (.xlsx)</span>
           </div>
-          <button type="button" id="btn-download-sample-excel" class="btn-outline">
-            📥 Скачать образец журнала (.xlsx)
-          </button>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" id="btn-download-sample-excel" class="btn-outline">
+              📥 Образец (8 линий)
+            </button>
+            <button type="button" id="btn-download-large-sample-excel" class="btn-primary" style="width: auto; padding: 8px 14px; font-size: 13px;">
+              ⚡ Боевой журнал ГРЩ (70 линий)
+            </button>
+          </div>
         </div>
 
         <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
@@ -298,6 +572,29 @@
           <div class="batch-stat-card">
             <div class="metric-label">Скорость расчета в браузере</div>
             <div id="batch-stat-speed" class="batch-stat-num" style="color: var(--accent-cyan);">0 мс</div>
+          </div>
+        </div>
+
+        <!-- Инженерный блок устранения замечаний и подготовки тома экспертизы -->
+        <div id="batch-remediation-banner" class="remediation-banner" style="display: none;">
+          <div class="remediation-banner-left">
+            <div class="remediation-banner-icon" id="remediation-banner-icon">⚠️</div>
+            <div class="remediation-banner-info">
+              <div class="remediation-banner-title" id="remediation-banner-title">
+                Обнаружены проектные коллизии по ПУЭ-7 (п. 1.7.79)
+              </div>
+              <div class="remediation-banner-desc" id="remediation-banner-desc">
+                Ток однофазного КЗ ниже уставки мгновенной отсечки автомата. Экспертиза отклонит такой расчет. Выберите решение для каждой линии ниже или примените умный алгоритм.
+              </div>
+            </div>
+          </div>
+          <div class="remediation-banner-actions">
+            <button type="button" id="btn-smart-autofix" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0f766e); width: auto; white-space: nowrap; font-weight: 700;">
+              ⚡ Устранить коллизии автоматически (100% ПУЭ-7)
+            </button>
+            <button type="button" id="btn-reset-corrections" class="btn-outline" style="width: auto; white-space: nowrap; display: none;">
+              ↺ Сбросить к исходному журналу
+            </button>
           </div>
         </div>
 
@@ -347,7 +644,7 @@
             <div class="info-tip" style="margin: 0;">Включает титульный лист, ведомость формул по ГОСТ 28249-93 и ответ на замечание экспертизы</div>
           </div>
           <div style="display: flex; gap: 12px; align-items: center;">
-            <button type="button" class="btn-primary" onclick="alert('Модуль сборщика Word (.docx) по ГОСТ 2.105-95 будет активирован на следующем этапе разработки!')" style="width: auto;">
+            <button type="button" class="btn-primary" id="btn-export-batch-docx" style="width: auto;">
               📄 Сформировать полный том Word (.docx)
             </button>
           </div>
@@ -358,6 +655,65 @@
     </div>
 
   </main>
+
+  <!-- Модальное окно: Выгрузка официального тома Word (.docx) -->
+  <div id="docx-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+          <span>📄</span> <span id="docx-modal-title">Параметры официального тома (ГОСТ 2.105-95)</span>
+        </h3>
+        <button type="button" id="close-docx-modal" class="btn-close">&times;</button>
+      </div>
+
+      <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+        Реквизиты будут автоматически внесены в титульный лист, колонтитулы и штампы пояснительной записки в строгом соответствии с ГОСТ 2.105-95 и ГОСТ 28249-93.
+      </div>
+
+      <form id="docx-modal-form" onsubmit="return false;">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="docx-input-title">Наименование объекта строительства</label>
+          <input type="text" id="docx-input-title" class="form-input" value="Жилой комплекс «Северная Звезда»" placeholder="Например: Многофункциональное здание с подземной автостоянкой" required />
+        </div>
+
+        <div class="form-row form-row-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label" for="docx-input-code">Шифр проекта (раздела)</label>
+            <input type="text" id="docx-input-code" class="form-input" value="2026-ЭОМ.РР" placeholder="Например: 2026-ЭОМ.РР" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="docx-input-panel">Маркировка щита / шкафа</label>
+            <input type="text" id="docx-input-panel" class="form-input" value="ВРУ-1" placeholder="Например: ВРУ-1, ГРЩ, ЩР-1" required />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" for="docx-input-company">Проектная организация</label>
+          <input type="text" id="docx-input-company" class="form-input" value="ООО «Проектно-инжиниринговая мастерская»" placeholder="Например: ООО «ГлавПроектИнжиниринг»" required />
+        </div>
+
+        <div class="form-row form-row-2" style="margin-bottom: 20px;">
+          <div class="form-group">
+            <label class="form-label" for="docx-input-author">Разработал (инженер ЭОМ)</label>
+            <input type="text" id="docx-input-author" class="form-input" value="Инженер-проектировщик ЭОМ" placeholder="Фамилия И.О. / Должность" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="docx-input-checker">Проверил (ГИП / Эксперт)</label>
+            <input type="text" id="docx-input-checker" class="form-input" value="Главный инженер проекта (ГИП)" placeholder="Фамилия И.О. / Должность" required />
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; align-items: center; border-top: 1px solid var(--border); padding-top: 18px;">
+          <button type="button" class="btn-outline" id="btn-cancel-docx-modal">
+            Отмена
+          </button>
+          <button type="button" class="btn-primary" id="btn-submit-docx-export" style="width: auto;">
+            ⬇️ Сформировать и скачать .docx
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Модальное окно: Протокол проверки для СБ -->
   <div id="security-modal" class="modal-overlay">
@@ -370,6 +726,24 @@
       </div>
 
       <div style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+        <!-- Блок установки B2B PRO приложения (вынесен наверх для быстрого доступа) -->
+        <div class="audit-step" style="border: 1px solid rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.08); border-radius: 12px; padding: 18px; margin-bottom: 22px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <strong style="color: var(--accent-emerald); display: block; font-size: 15px; margin-bottom: 4px;">
+                💻 Автономное приложение на Рабочий стол (B2B PRO):
+              </strong>
+              <div style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+                Установка изолированного десктоп-приложения (macOS / Windows) для работы в защищенном контуре без интернета.
+              </div>
+            </div>
+            <button type="button" id="btn-install-pwa" class="btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 700; width: auto; background: var(--accent-emerald); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
+              📥 Установить на ПК
+            </button>
+          </div>
+          <div id="pwa-install-status" style="font-size: 12px; color: var(--accent-emerald); margin-top: 8px; display: none;"></div>
+        </div>
+
         <p style="margin-bottom: 16px;">
           Служба безопасности проектных институтов и отделы режима обоснованно требуют гарантий неразглашения топологии кабельных сетей. Сервис Fazazero спроектирован по стандарту <strong>Zero-Data Immunity</strong>:
         </p>
@@ -391,7 +765,7 @@
 
         <div class="audit-step">
           <strong style="color: var(--text-main);">Правовой иммунитет по 152-ФЗ:</strong>
-          <div>Сервис не ведет сбор персональных данных, не требует регистрации и не имеет серверных баз данных. Данные живут исключительно во вкладке браузера до закрытия страницы.</div>
+          <div>Сервис не ведет сбор персональных данных, не требует регистрации и не имеет серверных баз данных. Данные живут исключительно во вкладке ВАШЕГО браузера до закрытия страницы.</div>
         </div>
       </div>
 
@@ -415,6 +789,6 @@
     </div>
   </footer>
 
-  <script type="module" src="js/app.js?v=2"></script>
+  <script type="module" src="js/app.js?v=10"></script>
 </body>
 </html>

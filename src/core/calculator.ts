@@ -9,6 +9,9 @@ import type {
   CircuitBreakerInput,
   CalculationSettings,
   CalculationResult,
+  CascadeCalculationInput,
+  CascadeCalculationResult,
+  CascadeTierResult,
 } from './types.ts';
 import { calculateSourceImpedance } from './transformers.ts';
 import { calculateCableSection } from './cables.ts';
@@ -87,5 +90,105 @@ export function calculatePhaseZeroLoop(input: SingleLineCalculationInput): Calcu
     status: breakerEval.isCompliant ? 'SUCCESS' : 'FAILURE',
     statusMessage: breakerEval.statusText,
     recommendation: breakerEval.recommendation,
+  };
+}
+
+/**
+ * Выполняет сквозной каскадный расчет многозвенной магистрали (до 10 звеньев)
+ * с независимой проверкой аппаратов защиты на каждом участке
+ */
+export function calculateCascade(input: CascadeCalculationInput): CascadeCalculationResult {
+  const { powerSource, tiers, settings } = input;
+  const source = calculateSourceImpedance(powerSource);
+
+  const uPhase = settings?.nominalPhaseVoltageV ?? 230;
+  const factorC = settings?.voltageFactorC ?? 1.0;
+  const baseContactR = settings?.contactResistanceOhm ?? 0.015;
+  const arcR = settings?.arcResistanceOhm ?? 0.0;
+
+  let cumulativeLengthM = 0;
+  let cumulativeCableR = 0;
+  let cumulativeCableX = 0;
+
+  let totalBreakersCount = 0;
+  let passedBreakersCount = 0;
+  let failedBreakersCount = 0;
+
+  const tiersResults: CascadeTierResult[] = [];
+
+  tiers.forEach((tier, idx) => {
+    const calculatedSection = calculateCableSection(tier.cable, idx + 1);
+
+    cumulativeLengthM += calculatedSection.lengthM;
+    cumulativeCableR += calculatedSection.rTotalSectionOhm;
+    cumulativeCableX += calculatedSection.xTotalSectionOhm;
+
+    // Переходные контакты: базовые 0.015 Ом + 0.005 Ом на каждый последующий коммутационный узел
+    const stageContactR = baseContactR + (idx > 0 ? idx * 0.005 : 0);
+
+    const totalRAtTier = source.rSourceOhm + cumulativeCableR + stageContactR + arcR;
+    const totalXAtTier = source.xSourceOhm + cumulativeCableX;
+    const loopZAtTier = Math.hypot(totalRAtTier, totalXAtTier);
+
+    const ik1A = loopZAtTier > 0 ? (factorC * uPhase) / loopZAtTier : 0;
+    const ik1kA = ik1A / 1000;
+
+    let evalResult;
+    if (tier.circuitBreaker) {
+      totalBreakersCount++;
+      evalResult = evaluateBreakerTripping(tier.circuitBreaker, ik1A);
+      if (evalResult.isCompliant) {
+        passedBreakersCount++;
+      } else {
+        failedBreakersCount++;
+      }
+    }
+
+    tiersResults.push({
+      index: idx + 1,
+      name: tier.name || `Участок ${idx + 1}`,
+      section: calculatedSection,
+      cumulativeLengthM,
+      cumulativeR_Ohm: cumulativeCableR,
+      cumulativeX_Ohm: cumulativeCableX,
+      loopImpedanceZ_Ohm: loopZAtTier,
+      ik1A,
+      ik1kA,
+      circuitBreaker: tier.circuitBreaker,
+      breakerEvaluation: evalResult,
+    });
+  });
+
+  const lastTier = tiersResults[tiersResults.length - 1];
+  const lastTotalR = lastTier
+    ? source.rSourceOhm +
+      lastTier.cumulativeR_Ohm +
+      (baseContactR + (tiersResults.length > 1 ? (tiersResults.length - 1) * 0.005 : 0)) +
+      arcR
+    : source.rSourceOhm;
+  const lastTotalX = lastTier ? source.xSourceOhm + lastTier.cumulativeX_Ohm : source.xSourceOhm;
+  const lastLoopZ = lastTier ? lastTier.loopImpedanceZ_Ohm : source.zSourceOhm;
+  const lastIk1A = lastTier ? lastTier.ik1A : 0;
+  const lastIk1kA = lastTier ? lastTier.ik1kA : 0;
+
+  return {
+    sourceType: powerSource.type,
+    sourceDescription: source.sourceDescription,
+    sourceR_Ohm: source.rSourceOhm,
+    sourceX_Ohm: source.xSourceOhm,
+    sourceZ_Ohm: source.zSourceOhm,
+
+    tiers: tiersResults,
+    totalLengthM: cumulativeLengthM,
+    totalR_Ohm: lastTotalR,
+    totalX_Ohm: lastTotalX,
+    totalLoopImpedanceZ_Ohm: lastLoopZ,
+    endIk1A: lastIk1A,
+    endIk1kA: lastIk1kA,
+
+    overallIsPueCompliant: totalBreakersCount > 0 ? failedBreakersCount === 0 : true,
+    totalBreakersCount,
+    passedBreakersCount,
+    failedBreakersCount,
   };
 }

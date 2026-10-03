@@ -21,6 +21,7 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
+    "docx": "^9.8.1",
     "xlsx": "^0.18.5"
   }
 }

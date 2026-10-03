@@ -1,0 +1,33 @@
+{
+  "name": "Fazazero (КЗ-Эксперт) — Расчет петли фаза-ноль",
+  "short_name": "Fazazero",
+  "description": "Инженерный расчет токов КЗ и петли фаза-ноль по ГОСТ 28249-93 и ПУЭ-7 с генерацией томов по ГОСТ 2.105-95. 100% Client-Side Zero-Server.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1329",
+  "theme_color": "#0f172a",
+  "lang": "ru",
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

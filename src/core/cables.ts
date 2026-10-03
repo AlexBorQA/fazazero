@@ -4,23 +4,22 @@
  */
 
 import type { ConductorMaterial, CableSectionCalculation, CableSectionInput } from './types.ts';
+import {
+  VAULT_DC_RESISTANCE_20_OHM_KM,
+  VAULT_RHO_20,
+  VAULT_ALPHA_TEMP,
+} from './vault.ts';
 
 /**
  * Удельное электрическое сопротивление металлов при 20 °C, Ом·мм²/м
  * (ГОСТ 28249-93 разд. 2, ГОСТ 22483-2021)
  */
-export const RHO_20: Record<ConductorMaterial, number> = {
-  cu: 0.0175, // Медь
-  al: 0.0282, // Алюминий
-};
+export const RHO_20: Record<ConductorMaterial, number> = VAULT_RHO_20;
 
 /**
  * Температурный коэффициент сопротивления alpha, 1/°C
  */
-export const ALPHA_TEMP: Record<ConductorMaterial, number> = {
-  cu: 0.00393,
-  al: 0.00403,
-};
+export const ALPHA_TEMP: Record<ConductorMaterial, number> = VAULT_ALPHA_TEMP;
 
 /**
  * Стандартный ряд сечений кабелей и проводов по ГОСТ 22483-2021, мм²
@@ -33,45 +32,8 @@ export const STANDARD_CROSS_SECTIONS: readonly number[] = [
  * Таблица максимального электрического сопротивления постоянному току 1 км жилы при 20 °C (Ом/км)
  * по ГОСТ 22483-2021 (Класс 1 и 2)
  */
-export const DC_RESISTANCE_20_OHM_KM: Record<ConductorMaterial, Record<number, number>> = {
-  cu: {
-    1.5: 12.1,
-    2.5: 7.41,
-    4: 4.61,
-    6: 3.08,
-    10: 1.83,
-    16: 1.15,
-    25: 0.727,
-    35: 0.524,
-    50: 0.387,
-    70: 0.268,
-    95: 0.193,
-    120: 0.153,
-    150: 0.124,
-    185: 0.0991,
-    240: 0.0754,
-    300: 0.0601,
-    400: 0.047,
-  },
-  al: {
-    2.5: 12.1,
-    4: 7.41,
-    6: 4.61,
-    10: 3.08,
-    16: 1.91,
-    25: 1.20,
-    35: 0.868,
-    50: 0.641,
-    70: 0.443,
-    95: 0.320,
-    120: 0.253,
-    150: 0.206,
-    185: 0.164,
-    240: 0.125,
-    300: 0.100,
-    400: 0.0778,
-  },
-};
+export const DC_RESISTANCE_20_OHM_KM: Record<ConductorMaterial, Record<number, number>> =
+  VAULT_DC_RESISTANCE_20_OHM_KM;
 
 /**
  * Коэффициент температурного пересчета сопротивления

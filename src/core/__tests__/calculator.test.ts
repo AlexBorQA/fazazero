@@ -15,6 +15,7 @@ import {
 } from '../circuitBreakers.ts';
 import {
   calculatePhaseZeroLoop,
+  calculateCascade,
 } from '../calculator.ts';
 
 test('cables: расчет сопротивления медной жилы при 20°C и 65°C', () => {
@@ -166,4 +167,107 @@ test('calculator: линия с большим сопротивлением вы
   assert.strictEqual(result.status, 'FAILURE');
   assert.strictEqual(result.isPueCompliant, false);
   assert.ok(result.recommendation !== undefined);
+});
+
+test('calculateCascade: расчет каскадной магистрали с проверкой автоматов по ступеням', () => {
+  const cascade = calculateCascade({
+    powerSource: {
+      type: 'transformer',
+      transformerPowerKva: 630,
+      transformerConnection: 'D/Yn-11',
+    },
+    tiers: [
+      {
+        name: 'Ступень 1: Магистраль ТП - ГРЩ',
+        cable: {
+          material: 'al',
+          phaseCrossSectionMm2: 150,
+          zeroCrossSectionMm2: 95,
+          lengthMeters: 60,
+        },
+        circuitBreaker: {
+          model: 'ВА88-37',
+          ratedCurrentA: 250,
+          curve: 'custom',
+          customTripCurrentA: 2500, // Отсечка 10 In
+        },
+      },
+      {
+        name: 'Ступень 2: Стояк ГРЩ - ЩЭ',
+        cable: {
+          material: 'cu',
+          phaseCrossSectionMm2: 16,
+          zeroCrossSectionMm2: 16,
+          lengthMeters: 30,
+        },
+        circuitBreaker: {
+          model: 'ВА47-100',
+          ratedCurrentA: 50,
+          curve: 'C', // 10 In = 500 А, с k=1.1 => 550 А
+        },
+      },
+      {
+        name: 'Ступень 3: Групповая линия ЩЭ - Розетки',
+        cable: {
+          material: 'cu',
+          phaseCrossSectionMm2: 2.5,
+          zeroCrossSectionMm2: 2.5,
+          lengthMeters: 25,
+        },
+        circuitBreaker: {
+          model: 'ВА47-29',
+          ratedCurrentA: 16,
+          curve: 'C', // 10 In = 160 А, с k=1.1 => 176 А
+        },
+      },
+    ],
+  });
+
+  assert.strictEqual(cascade.tiers.length, 3);
+  assert.strictEqual(cascade.totalLengthM, 115); // 60 + 30 + 25
+  assert.strictEqual(cascade.totalBreakersCount, 3);
+
+  // Токи КЗ по ступеням строго убывают по мере удаления от источника
+  const ik1 = cascade.tiers[0].ik1A;
+  const ik2 = cascade.tiers[1].ik1A;
+  const ik3 = cascade.tiers[2].ik1A;
+  assert.ok(ik1 > ik2, `Ток на ступени 1 (${ik1} А) должен быть больше ступени 2 (${ik2} А)`);
+  assert.ok(ik2 > ik3, `Ток на ступени 2 (${ik2} А) должен быть больше ступени 3 (${ik3} А)`);
+
+  // Проверка срабатывания автоматов
+  assert.strictEqual(cascade.tiers[0].breakerEvaluation?.isCompliant, true);
+  assert.strictEqual(cascade.tiers[1].breakerEvaluation?.isCompliant, true);
+  assert.strictEqual(cascade.tiers[2].breakerEvaluation?.isCompliant, true);
+  assert.strictEqual(cascade.overallIsPueCompliant, true);
+  assert.strictEqual(cascade.passedBreakersCount, 3);
+  assert.strictEqual(cascade.failedBreakersCount, 0);
+});
+
+test('calculateCascade: фиксация отказа на проблемной ступени каскада', () => {
+  const cascade = calculateCascade({
+    powerSource: {
+      type: 'vru_tu',
+      vruIk3kA: 10.0,
+    },
+    tiers: [
+      {
+        name: 'Ступень 1: Вводной кабель',
+        cable: { material: 'cu', phaseCrossSectionMm2: 25, zeroCrossSectionMm2: 25, lengthMeters: 20 },
+        circuitBreaker: { ratedCurrentA: 63, curve: 'C' }, // 630 * 1.1 = 693 A
+      },
+      {
+        name: 'Ступень 2: Заведомо длинная линия с завышенным автоматом',
+        cable: { material: 'cu', phaseCrossSectionMm2: 2.5, zeroCrossSectionMm2: 2.5, lengthMeters: 90 },
+        circuitBreaker: { ratedCurrentA: 25, curve: 'C' }, // 250 * 1.1 = 275 A
+      },
+    ],
+  });
+
+  // Ступень 1 проходит
+  assert.strictEqual(cascade.tiers[0].breakerEvaluation?.isCompliant, true);
+  // Ступень 2 не проходит (длина 90 м при сечении 2.5 дает ток КЗ около 150 А, что меньше 275 А)
+  assert.strictEqual(cascade.tiers[1].breakerEvaluation?.isCompliant, false);
+  assert.strictEqual(cascade.overallIsPueCompliant, false);
+  assert.strictEqual(cascade.passedBreakersCount, 1);
+  assert.strictEqual(cascade.failedBreakersCount, 1);
 });

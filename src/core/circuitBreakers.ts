@@ -3,7 +3,8 @@
  * и ГОСТ Р 50345-2010 / ГОСТ Р 50571.4.41.
  */
 
-import type { BreakerCurveType, CircuitBreakerInput } from './types.ts';
+import type { BreakerCurveType, CircuitBreakerInput, BreakerEvaluationResult } from './types.ts';
+import { VAULT_BREAKER_CURVE_MULTIPLIER } from './vault.ts';
 
 export const STANDARD_BREAKER_RATINGS: readonly number[] = [
   6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630,
@@ -16,26 +17,8 @@ export const STANDARD_BREAKER_RATINGS: readonly number[] = [
  * - C: 5...10 In (гарантированное срабатывание при 10 In)
  * - D: 10...14 In (по ГОСТ Р 50345 / 10...20 In по ГОСТ Р 50030.2, принимаем 14 In)
  */
-export const BREAKER_CURVE_MULTIPLIER: Record<Exclude<BreakerCurveType, 'custom'>, number> = {
-  B: 5,
-  C: 10,
-  D: 14,
-};
-
-export interface BreakerEvaluationResult {
-  ratedCurrentA: number;
-  curve: string;
-  instantaneousMultiplier: number;
-  maxTripThresholdA: number; // Верхняя граница электромагнитного расцепителя I_отс
-  safetyFactor: number; // Коэффициент надежности по ПУЭ (по умолчанию 1.1)
-  requiredTripCurrentA: number; // Минимально необходимый расчетный ток КЗ: I_треб = k_над * I_отс
-  actualTripRatio: number; // Кратность фактического тока: I_кз / I_n
-  marginPercent: number; // Запас (+%) или дефицит (-%)
-  isCompliant: boolean; // Выполняется ли ПУЭ п. 1.7.79
-  tripTimeSeconds: number; // Время отключения при срабатывании отсечки (<= 0.1 c)
-  statusText: string;
-  recommendation?: string;
-}
+export const BREAKER_CURVE_MULTIPLIER: Record<Exclude<BreakerCurveType, 'custom'>, number> =
+  VAULT_BREAKER_CURVE_MULTIPLIER;
 
 /**
  * Проверяет условие отключения выключателя по току однофазного КЗ

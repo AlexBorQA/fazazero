@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- @0485=B D>=0 (3;C1>:89 B5E=8G5A:89 3@0D8B) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#090d16" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <!-- @0485=B ?5B;8 D070-=>;L (18@N7>2>-87C<@C4=K9) -->
+    <linearGradient id="loopGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="50%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+
+    <!-- @0485=B <>;=88  (7>;>B8AB>-O=B0@=K9) -->
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- =CB@5==55 A25G5=85  -->
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#06b6d4" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- $8;LB@ =5>=>2>3> A25G5=8O -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- !:@C3;5==K9 D>= ?@8;>65=8O (PWA Squircle) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#334155" stroke-width="3" stroke-opacity="0.6" />
+
+  <!--  0480;L=0O ?>4A25B:0 O4@0 -->
+  <circle cx="256" cy="235" r="190" fill="url(#centerGlow)" />
+
+  <!-- =65=5@=0O :@C3>20O H:0;0 / 70A5G:8 !" -->
+  <circle cx="256" cy="235" r="160" fill="none" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 12" />
+  <circle cx="256" cy="235" r="130" fill="none" stroke="#334155" stroke-width="1.5" stroke-opacity="0.4" />
+
+  <!-- 5B;O $070->;L (=570<:=CBK9 ?@>2>4=8: A :;5<<0<8) -->
+  <path d="M 160 300 A 130 130 0 1 1 352 300"
+        fill="none"
+        stroke="url(#loopGrad)"
+        stroke-width="22"
+        stroke-linecap="round"
+        filter="url(#glow)" />
+
+  <!-- ;5<<K ?5B;8 (C7;K L 8 N) -->
+  <circle cx="160" cy="300" r="15" fill="#0f172a" stroke="#06b6d4" stroke-width="6" />
+  <circle cx="352" cy="300" r="15" fill="#0f172a" stroke="#10b981" stroke-width="6" />
+
+  <!-- <?C;LA B>:0 :>@>B:>3> 70<K:0=8O (>;=8O ) 2 F5=B@5 ?5B;8 -->
+  <path d="M 272 135 L 205 240 L 255 240 L 235 330 L 315 220 L 265 220 Z"
+        fill="url(#boltGrad)"
+        stroke="#fef08a"
+        stroke-width="2"
+        stroke-linejoin="round"
+        filter="url(#glow)" />
+
+  <!-- 86=OO ?;0H:0 A <>=>3@0<<>9 1@5=40 FZ -->
+  <g transform="translate(256, 420)">
+    <rect x="-65" y="-22" width="130" height="44" rx="12" fill="#1e293b" fill-opacity="0.85" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.4" />
+    <text x="0" y="8"
+          font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          font-size="22"
+          font-weight="800"
+          letter-spacing="4"
+          fill="#f8fafc"
+          text-anchor="middle">FAZAZERO</text>
+  </g>
+</svg>

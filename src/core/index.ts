@@ -9,3 +9,5 @@ export * from './transformers.ts';
 export * from './circuitBreakers.ts';
 export * from './calculator.ts';
 export * from './excelParser.ts';
+export * from './docxGenerator.ts';
+export * from './remediation.ts';
